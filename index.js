@@ -49,13 +49,6 @@ function calculateTotal(cart, req){
 }
 
 
-// app.get('/cart' ,function(req,res){
-//     var cart = req.session.cart;
-//     var total = req.session.total;
-
-//     res.render('pages/cart',{cart:cart,total:total});
-// })
-
 app.get('/cart', function(req, res) {
 
     var cart = req.session.cart || [];
@@ -144,42 +137,6 @@ res.redirect('/cart');
 });
 
 
-// app.post('/edit_product_quantity',function(req,res){
-
-// //get values 
-
-// var id = req.body.id;
-// var quantity = req.body.quantity;
-// var increase_btn = req.body.increase_product_quantity;
-// var decrease_btn = req.body.decrease_product_quantity;
-
-// var cart = req.session.cart;
-// if(increase_btn){
-//     for(let i=0;i<cart.length;i++){
-//         if(cart[i].id==id){
-//             if(cart[i].quantity>0){
-//                 cart[i].quantity=parseInt(cart[i].quantity)+1;
-
-//             }
-//         }
-//     }
-// }
-
-// if(decrease_btn){
-//     for(let i=0;i<cart.length;i++){
-//         if(cart[i].id==id){
-//             if(cart[i].quantity>1){
-//                 cart[i].quantity=parseInt(cart[i].quantity)-1;
-
-//             }
-//         }
-//     }
-// }
-
-
-
-
-
 app.post('/edit_product_quantity', function(req, res) {
 
    console.log("BODY:", req.body);
@@ -248,6 +205,9 @@ app.post('/post_order', function(req, res) {
     console.log("CART:", req.session.cart);
     console.log("TOTAL:", req.session.total);
 
+    // Generate custom Order ID using timestamp
+    var id = Date.now();
+
     // Customer details
     var name = req.body.name;
     var email = req.body.email;
@@ -261,6 +221,9 @@ app.post('/post_order', function(req, res) {
 
     var status = "not paid";
     var date = new Date();
+    
+    // Save order ID into session
+    req.session.order_id = id;
 
     // Check cart
     if (cart.length === 0) {
@@ -309,6 +272,7 @@ app.post('/post_order', function(req, res) {
         var orderQuery = `
             INSERT INTO orders
             (
+                id,
                 cost,
                 name,
                 email,
@@ -323,6 +287,7 @@ app.post('/post_order', function(req, res) {
 
 
         var orderValues = [[
+            id,
             cost,
             name,
             email,
@@ -355,11 +320,6 @@ app.post('/post_order', function(req, res) {
 
 
             console.log("ORDER INSERTED SUCCESSFULLY");
-            console.log("ORDER ID:", result.insertId);
-
-
-            // Get order ID
-            var order_id = result.insertId;
 
 
             // ==========================================
@@ -387,7 +347,7 @@ app.post('/post_order', function(req, res) {
             for (let i = 0; i < cart.length; i++) {
 
                 itemValues.push([
-                    order_id,
+                    id,
                     cart[i].id,
                     cart[i].name,
                     cart[i].price,
@@ -441,6 +401,106 @@ app.post('/post_order', function(req, res) {
 
 app.get('/payment', function(req, res) {
 
-    res.render('pages/payment');
+    var total = req.session.total || 0;
+
+    res.render('pages/payment', {
+        total: total
+    });
 
 });
+
+
+app.get("/verify_payment", function(req, res) {
+    var transaction_id = req.query.transaction_id;
+    var order_id = req.session.order_id;
+
+
+    var con=mysql.createConnection({
+        host:"localhost",
+        user:"root",
+        password:"",
+        database:"node_project"
+    })
+
+    con.connect((err)=>{
+        if(err){
+            console.log(err)
+        }
+        else{
+            var query="INSERT INTO payments (order_id,transaction_id,date) VALUES ?";
+            var valuess =[
+                [order_id,transaction_id,new Date()]
+            ]
+            con.query(query,[valuess],(err,result )=>{
+con.query("UPDATE orders SET status ='paid' WHERE id='"+order_id+"'",(err,result)=>{
+
+})
+res.redirect('/thank_you')
+            })
+        }
+    })
+});
+
+app.get("/thank_you", function(req, res) {
+
+    var order_id = req.session.order_id;
+
+    res.render("pages/thank_you", {
+        order_id: order_id
+    });
+
+});
+
+app.get("/single_product", function(req, res) {
+
+    var id = req.query.id;
+
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "",
+        database: "node_project"
+    });
+
+    var query = "SELECT * FROM products WHERE id = ?";
+
+    con.query(query, [id], function(err, result) {
+
+        if (err) {
+            console.log("SINGLE PRODUCT ERROR:", err);
+            return res.status(500).send(err.message);
+        }
+
+        if (result.length === 0) {
+            return res.status(404).send("Product not found");
+        }
+
+        res.render("pages/single_product", {
+            result: result
+        });
+
+        con.end();
+
+    });
+
+});
+
+app.get("/products",function(req,res){
+
+    var con=mysql.createConnection({
+        host:"localhost",
+        user:"root",
+        password:"",
+        database:"node_project"
+    })
+
+    con.query("SELECT * FROM products" ,(err,result)=>{
+        res.render("pages/products",{result:result});
+    })
+
+});
+
+app.get("/about",function(req,res){
+res.render("pages/about")
+});
+

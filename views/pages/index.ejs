@@ -22,7 +22,7 @@
 
     <!--owl slider stylesheet -->
     <link
-      rel="stylesheet"
+ rel="stylesheet"
       type="text/css"
       href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.css"
     />
@@ -51,7 +51,7 @@
       <header class="header_section">
         <div class="container">
           <nav class="navbar navbar-expand-lg custom_nav-container">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="/">
               <span> calmandcode </span>
             </a>
 
@@ -70,22 +70,22 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav mx-auto">
                 <li class="nav-item active">
-                  <a class="nav-link" href="index.html"
+                  <a class="nav-link" href="/"
                     >Home <span class="sr-only">(current)</span></a
                   >
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="products.html">Menu</a>
+                 <a class="nav-link" href="/#menu">Menu</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="about.html">About</a>
+                  <a class="nav-link" href="about">About</a>
                 </li>
               </ul>
               <div class="user_option">
                 <!--  <a href="" class="user_link">
                 <i class="fa fa-user" aria-hidden="true"></i>
               </a> -->
-                <a class="cart_link" href="#">
+                <a class="cart_link" href="/cart" aria-label="View shopping cart">
                   <svg
                     version="1.1"
                     id="Capa_1"
@@ -387,7 +387,7 @@
 
     <!-- food section -->
 
-    <section class="food_section layout_padding-bottom">
+    <section id="menu" class="food_section layout_padding-bottom">
       <div class="container">
         <div class="heading_container heading_center">
           <h2>Our Menu</h2>
@@ -413,7 +413,10 @@
                     <img src="images/<%= item.image %>" alt="" />
                   </div>
                   <div class="detail-box">
-                    <h5><%= item.name%></h5>
+                    <h5>
+                      <a href="/single_product?id=<%= item.id %>"> <%= item.name%> </a> 
+                    </h5>
+
                     <p>
                       <%= item.description %>
                     </p>
